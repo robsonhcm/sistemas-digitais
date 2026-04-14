@@ -1,0 +1,960 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RPG dos Sistemas de Numeração — Sistemas Digitais</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#111b33;
+      --panel2:#0f1730;
+      --text:#e8eefc;
+      --muted:#a9b4d6;
+      --accent:#6ae4ff;
+      --accent2:#a78bfa;
+      --good:#34d399;
+      --bad:#fb7185;
+      --warn:#fbbf24;
+      --border:rgba(255,255,255,.10);
+      --shadow: 0 10px 35px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      background: radial-gradient(1200px 500px at 10% 0%, rgba(106,228,255,.18), transparent 60%),
+                  radial-gradient(900px 450px at 90% 10%, rgba(167,139,250,.18), transparent 55%),
+                  linear-gradient(180deg, #070c16 0%, var(--bg) 65%, #070c16 100%);
+      color:var(--text);
+      min-height:100vh;
+    }
+    header{
+      padding:18px 14px 10px;
+      max-width:1100px;
+      margin:0 auto;
+    }
+    .topbar{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .brand{
+      display:flex; gap:12px; align-items:center;
+    }
+    .logo{
+      width:44px; height:44px; border-radius:14px;
+      background: linear-gradient(135deg, rgba(106,228,255,.35), rgba(167,139,250,.35));
+      border:1px solid var(--border);
+      box-shadow: var(--shadow);
+      display:grid; place-items:center;
+      font-weight:800;
+      letter-spacing:.5px;
+    }
+    .brand h1{
+      margin:0;
+      font-size:16px;
+      line-height:1.2;
+    }
+    .brand p{
+      margin:3px 0 0;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .stats{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .chip{
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      padding:10px 12px;
+      border-radius:999px;
+      display:flex; gap:10px; align-items:center;
+      box-shadow: 0 8px 20px rgba(0,0,0,.25);
+      white-space:nowrap;
+    }
+    .chip .k{
+      font-size:12px; color:var(--muted);
+    }
+    .chip .v{
+      font-weight:800; font-size:13px;
+      color:var(--accent);
+    }
+    main{
+      max-width:1100px;
+      margin:0 auto;
+      padding:10px 14px 28px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.3fr .9fr;
+      gap:14px;
+      align-items:start;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns:1fr; }
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .card-h{
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.07);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .card .card-h h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .card .card-h .sub{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:12.5px;
+      max-width:680px;
+    }
+    .content{
+      padding:14px;
+    }
+
+    /* RPG UI */
+    .barwrap{
+      display:grid;
+      gap:10px;
+    }
+    .hpRow{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      color:var(--muted);
+      font-size:12.5px;
+    }
+    .bar{
+      height:12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+    .bar > span{
+      display:block;
+      height:100%;
+      width:50%;
+      background: linear-gradient(90deg, rgba(106,228,255,.9), rgba(167,139,250,.85));
+      border-radius:999px;
+      transition: width .25s ease;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    /* Perguntas */
+    .quest{
+      display:grid;
+      gap:12px;
+    }
+    .badge{
+      display:inline-flex;
+      padding:6px 10px;
+      border-radius:999px;
+      background: rgba(106,228,255,.12);
+      border:1px solid rgba(106,228,255,.25);
+      color: var(--accent);
+      font-size:12px;
+      font-weight:800;
+    }
+    .prompt{
+      font-size:15px;
+      line-height:1.45;
+      margin:0;
+    }
+    .hint{
+      margin:0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.4;
+      background: rgba(255,255,255,.04);
+      border:1px dashed rgba(255,255,255,.14);
+      padding:10px 12px;
+      border-radius: 12px;
+    }
+    .inputRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+    }
+    label{
+      display:block;
+      font-size:12.5px;
+      color:var(--muted);
+      margin:0 0 6px 2px;
+    }
+    input[type="text"], select, textarea{
+      width:100%;
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: 12px;
+      padding:12px 12px;
+      outline:none;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.15);
+    }
+    input[type="text"]::placeholder, textarea::placeholder{
+      color: rgba(232,238,252,.45);
+    }
+    .field{
+      flex: 1 1 260px;
+      min-width: 220px;
+    }
+    .btns{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    button{
+      cursor:pointer;
+      border:none;
+      border-radius: 12px;
+      padding:12px 14px;
+      font-weight:900;
+      letter-spacing:.2px;
+      color:#07101f;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 10px 22px rgba(106,228,255,.15);
+      transition: transform .08s ease, filter .15s ease;
+      flex: 0 0 auto;
+    }
+    button:active{ transform: translateY(1px); }
+    .btnSecondary{
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      border:1px solid rgba(255,255,255,.16);
+      box-shadow:none;
+    }
+    .btnDanger{
+      background: rgba(251,113,133,.16);
+      color: var(--bad);
+      border:1px solid rgba(251,113,133,.35);
+      box-shadow:none;
+    }
+    .feedback{
+      border-radius: 14px;
+      padding:12px 12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+    }
+    .feedback.good{
+      border-color: rgba(52,211,153,.35);
+      background: rgba(52,211,153,.12);
+    }
+    .feedback.bad{
+      border-color: rgba(251,113,133,.35);
+      background: rgba(251,113,133,.12);
+    }
+    .feedback .title{
+      font-weight:1000;
+      margin:0;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .feedback p{
+      margin:6px 0 0;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.4;
+    }
+    .smallNote{
+      color: var(--muted);
+      font-size:12.5px;
+      line-height:1.4;
+      margin-top:10px;
+    }
+
+    /* Coluna lateral */
+    .sideList{
+      display:grid;
+      gap:10px;
+    }
+    .sideItem{
+      background: rgba(0,0,0,.14);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding:12px 12px;
+    }
+    .sideItem .t{
+      display:flex; justify-content:space-between; gap:10px; align-items:center;
+      font-weight:1000;
+      font-size:13px;
+    }
+    .sideItem .desc{
+      color:var(--muted);
+      font-size:12.5px;
+      line-height:1.4;
+      margin-top:6px;
+    }
+    .progressList{
+      margin:0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+    .progressList strong{
+      color: var(--text);
+    }
+
+    /* Modal */
+    .modalOverlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      place-items:center;
+      padding:18px;
+      z-index:999;
+    }
+    .modalOverlay.show{ display:grid; }
+    .modal{
+      width:min(720px, 100%);
+      background: linear-gradient(180deg, rgba(17,27,51,.98), rgba(10,16,34,.98));
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: 18px;
+      box-shadow: 0 40px 90px rgba(0,0,0,.55);
+      overflow:hidden;
+    }
+    .modal h3{
+      margin:0;
+      padding:14px 14px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .modal .modalBody{
+      padding:14px;
+      color:var(--muted);
+      font-size:13.5px;
+      line-height:1.55;
+      display:grid;
+      gap:10px;
+    }
+    .modal .modalFooter{
+      padding:14px;
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      border-top:1px solid rgba(255,255,255,.08);
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      background: rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.14);
+      padding:2px 8px;
+      border-radius: 10px;
+      color: var(--text);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    footer{
+      max-width:1100px;
+      margin:0 auto;
+      padding:0 14px 24px;
+      color: rgba(169,180,214,.95);
+      font-size:12.5px;
+      line-height:1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">SD</div>
+        <div>
+          <h1>RPG dos Sistemas de Numeração</h1>
+          <p>Gameficação para <strong>Sistemas Digitais</strong> — prática de conversões (binário/decimal/hexadecimal) e base 8.</p>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="chip" title="Pontos acumulados">
+          <span class="k">Pontos</span>
+          <span class="v" id="uiScore">0</span>
+        </div>
+        <div class="chip" title="Nível do personagem">
+          <span class="k">Nível</span>
+          <span class="v" id="uiLevel">1</span>
+        </div>
+        <div class="chip" title="Erros/vida">
+          <span class="k">Vida</span>
+          <span class="v" id="uiHP">100</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <!-- COLUNA PRINCIPAL -->
+      <section class="card" aria-label="Missão">
+        <div class="card-h">
+          <div>
+            <h2>Missão da Torre de Conversões</h2>
+            <div class="sub" id="uiStageDesc">Prepare-se para enfrentar os desafios de bases numéricas.</div>
+          </div>
+          <div class="badge" id="uiQuestTag">Fase 1</div>
+        </div>
+
+        <div class="content">
+          <div class="barwrap">
+            <div class="hpRow">
+              <span>Progresso da vida</span>
+              <span><strong id="uiHPLabel">100</strong>/100</span>
+            </div>
+            <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+              <span id="uiHPBar" style="width:100%"></span>
+            </div>
+          </div>
+
+          <div style="height:14px"></div>
+
+          <div class="quest" id="questArea">
+            <p class="prompt" id="uiPrompt"></p>
+            <p class="hint" id="uiHint"></p>
+
+            <div class="inputRow">
+              <div class="field">
+                <label for="answerInput">Resposta (use apenas números/letras; sem espaços)</label>
+                <input id="answerInput" type="text" inputmode="text" autocomplete="off" placeholder="Ex.: 1010, 10, A3 ..." />
+                <div class="smallNote">Dica: considere maiúsculas em hex (ex.: A, B, C, D, E, F).</div>
+              </div>
+
+              <div class="field" style="flex:0 0 190px; min-width:190px;">
+                <label for="modeSelect">Verificação</label>
+                <select id="modeSelect" aria-label="Modo de verificação">
+                  <option value="strict" selected>Estrita (valor exato)</option>
+                  <option value="loose">Flexível (permite 0x / prefixos)</option>
+                </select>
+                <div class="smallNote">No modo flexível, aceitamos prefixos como <span class="kbd">0x</span> e espaços opcionais.</div>
+              </div>
+            </div>
+
+            <div class="btns">
+              <button id="btnCheck" type="button">Conferir</button>
+              <button id="btnSkip" class="btnSecondary" type="button">Pular (-vida)</button>
+              <button id="btnHelp" class="btnSecondary" type="button">Ajuda</button>
+            </div>
+
+            <div id="feedback" class="feedback" style="display:none" aria-live="polite"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUNA LATERAL -->
+      <aside class="card" aria-label="Painel de progresso">
+        <div class="card-h">
+          <div>
+            <h2>Mapa de Aventuras</h2>
+            <div class="sub">Cada fase treina um tipo de conversão e fortalece sua “inteligência em bases”.</div>
+          </div>
+        </div>
+
+        <div class="content">
+          <div class="sideList">
+            <div class="sideItem">
+              <div class="t">
+                <span>Missões concluídas</span>
+                <span class="kbd" id="uiDoneCount">0/0</span>
+              </div>
+              <div class="desc">
+                Progredir corretamente aumenta pontos e recupera um pouco de vida.
+              </div>
+            </div>
+
+            <div class="sideItem">
+              <div class="t">
+                <span>Objetivos</span>
+                <span class="kbd">Bin ↔ Dec ↔ Hex</span>
+              </div>
+              <div class="desc">
+                Inclui operações típicas: potências de 2, grupos de 4 bits (hex), e conversões por divisão/substituição.
+              </div>
+            </div>
+
+            <div class="sideItem">
+              <div class="t">
+                <span>Trilha</span>
+                <span class="kbd" id="uiCurrentQuest">—</span>
+              </div>
+              <div class="desc">
+                <ol class="progressList" id="uiProgressList"></ol>
+              </div>
+            </div>
+
+            <div class="sideItem">
+              <div class="t">
+                <span>Como jogar</span>
+                <span class="kbd">Rápido</span>
+              </div>
+              <div class="desc">
+                Responda o valor pedido. Acerte para ganhar pontos. Se errar, sua vida diminui.
+              </div>
+              <div class="smallNote">
+                Atalhos: pressione <span class="kbd">Enter</span> para conferir.
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <strong>Professor:</strong> este objeto educacional em HTML pode ser usado em sala como avaliação formativa (prática guiada).
+    Sugestão: ao final, peça que os alunos expliquem o método (potências, agrupamento, divisão por base).
+  </footer>
+
+  <!-- MODAL AJUDA -->
+  <div class="modalOverlay" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="modal">
+      <h3 id="helpTitle">Ajuda rápida (Sistemas de Numeração)</h3>
+      <div class="modalBody" id="helpBody">
+        <!-- preenchido via JS -->
+      </div>
+      <div class="modalFooter">
+        <button type="button" class="btnSecondary" id="btnCloseHelp">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -----------------------------
+    // Dados do Jogo (fases)
+    // -----------------------------
+    // A regra de resposta aceita: (a) valor exato; (b) quando "loose",
+    // remove prefixos comuns e espaços.
+    const QUESTS = [
+      {
+        id: "1",
+        tag: "Fase 1",
+        title: "Fundamentos: Binário → Decimal",
+        prompt: "Converta o número binário 101101 (base 2) para decimal.",
+        hint: "Use potências de 2: some os valores correspondentes aos bits 1.",
+        answer: "45",
+        accepted: ["45"],
+        explanation: "101101₂ = 1·32 + 0·16 + 1·8 + 1·4 + 0·2 + 1·1 = 32+8+4+1 = 45."
+      },
+      {
+        id: "2",
+        tag: "Fase 2",
+        title: "Fundamentos: Decimal → Binário",
+        prompt: "Converta 26 (decimal) para binário.",
+        hint: "Tente subtrair potências de 2 ou faça divisões sucessivas por 2.",
+        answer: "11010",
+        accepted: ["11010"],
+        explanation: "26 = 16 + 8 + 2 ⇒ bits 1 nas posições 16, 8 e 2: 11010₂."
+      },
+      {
+        id: "3",
+        tag: "Fase 3",
+        title: "Hexadecimal: Hex → Decimal",
+        prompt: "Converta A7 (hexadecimal) para decimal.",
+        hint: "A = 10. Use 16^1 e 16^0: (A·16) + 7.",
+        answer: "167",
+        accepted: ["167"],
+        explanation: "A7₁₆ = 10·16 + 7 = 160 + 7 = 167."
+      },
+      {
+        id: "4",
+        tag: "Fase 4",
+        title: "Hexadecimal: Decimal → Hex",
+        prompt: "Converta 255 (decimal) para hexadecimal.",
+        hint: "255 = 15·16 + 15. Em hex, 15 = F.",
+        answer: "FF",
+        accepted: ["FF"],
+        explanation: "255₁₀ = 15·16 + 15 ⇒ FF₁₆."
+      },
+      {
+        id: "5",
+        tag: "Fase 5",
+        title: "Hex ↔ Binário (agrupamento de 4 bits)",
+        prompt: "Converta o hex 3C (base 16) para binário.",
+        hint: "Cada dígito hex representa 4 bits. 3 = 0011 e C(=12) = 1100.",
+        answer: "00111100",
+        accepted: ["00111100", "111100"], // aceita sem zeros à esquerda em modo flexível
+        explanation: "3C₁₆ = 3→0011 e C→1100 ⇒ 00111100₂."
+      },
+      {
+        id: "6",
+        tag: "Fase 6",
+        title: "Octal (Base 8): Octal → Decimal",
+        prompt: "Converta 765 (base 8) para decimal.",
+        hint: "Use potências de 8: 8^2, 8^1 e 8^0.",
+        answer: "501",
+        accepted: ["501"],
+        explanation: "765₈ = 7·64 + 6·8 + 5·1 = 448 + 48 + 5 = 501."
+      },
+      {
+        id: "7",
+        tag: "Fase 7",
+        title: "Octal (Base 8): Decimal → Octal",
+        prompt: "Converta 123 (decimal) para octal (base 8).",
+        hint: "Faça divisões sucessivas por 8 e anote os restos (do último para o primeiro).",
+        answer: "173",
+        accepted: ["173"],
+        explanation: "123 ÷ 8 = 15 resto 3; 15 ÷ 8 = 1 resto 7; 1 ÷ 8 = 0 resto 1 ⇒ 173₈."
+      },
+      {
+        id: "8",
+        tag: "Fase 8",
+        title: "Desafio misto: Binário → Hex",
+        prompt: "Converta 11010110 (base 2) para hexadecimal.",
+        hint: "Agrupe em blocos de 4 bits: 1101 0110. Em hex: D e 6.",
+        answer: "D6",
+        accepted: ["D6"],
+        explanation: "11010110₂ → 1101 0110 → D(=13) e 6 ⇒ D6₁₆."
+      }
+    ];
+
+    // -----------------------------
+    // Estado do jogo
+    // -----------------------------
+    const state = {
+      idx: 0,
+      score: 0,
+      level: 1,
+      hp: 100,
+      done: new Array(QUESTS.length).fill(false),
+      streak: 0
+    };
+
+    // -----------------------------
+    // Referências DOM
+    // -----------------------------
+    const uiScore = document.getElementById("uiScore");
+    const uiLevel = document.getElementById("uiLevel");
+    const uiHP = document.getElementById("uiHP");
+    const uiHPBar = document.getElementById("uiHPBar");
+    const uiHPLabel = document.getElementById("uiHPLabel");
+    const uiPrompt = document.getElementById("uiPrompt");
+    const uiHint = document.getElementById("uiHint");
+    const uiQuestTag = document.getElementById("uiQuestTag");
+    const uiStageDesc = document.getElementById("uiStageDesc");
+    const answerInput = document.getElementById("answerInput");
+    const modeSelect = document.getElementById("modeSelect");
+    const feedback = document.getElementById("feedback");
+    const uiDoneCount = document.getElementById("uiDoneCount");
+    const uiProgressList = document.getElementById("uiProgressList");
+    const uiCurrentQuest = document.getElementById("uiCurrentQuest");
+    const helpModal = document.getElementById("helpModal");
+    const helpBody = document.getElementById("helpBody");
+
+    // -----------------------------
+    // Funções auxiliares
+    // -----------------------------
+    function normalizeAnswer(str){
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .trim()
+        .replace(/\s+/g, "")
+        .toUpperCase();
+    }
+
+    function normalizeLoose(str){
+      // Remove prefixos comuns e espaços
+      let s = normalizeAnswer(str);
+      s = s.replace(/^0X/, "");
+      s = s.replace(/^B/, ""); // ex.: B1010 (não obrigatório)
+      s = s.replace(/[^0-9A-F]/g, ""); // conserva só dígitos hex
+      return s;
+    }
+
+    function setFeedback(type, title, msg){
+      feedback.style.display = "block";
+      feedback.classList.remove("good","bad");
+      feedback.classList.add(type === "good" ? "good" : "bad");
+      feedback.innerHTML = `
+        <div class="title">${type === "good" ? "✅ Acertou" : "🛑 Quase lá"}</div>
+        <p><strong>${title}</strong><br>${msg}</p>
+      `;
+    }
+
+    function updateUI(){
+      uiScore.textContent = state.score;
+      uiLevel.textContent = state.level;
+      uiHP.textContent = state.hp;
+      uiHPLabel.textContent = state.hp;
+
+      const pct = Math.max(0, Math.min(100, state.hp));
+      uiHPBar.style.width = pct + "%";
+
+      // Progress list
+      uiProgressList.innerHTML = "";
+      QUESTS.forEach((q, i) => {
+        const li = document.createElement("li");
+        const status = state.done[i] ? "✅ Concluída" : "⏳ Pendente";
+        li.innerHTML = `<strong>Fase ${i+1}.</strong> ${status}`;
+        uiProgressList.appendChild(li);
+      });
+
+      uiDoneCount.textContent = `${state.done.filter(Boolean).length}/${QUESTS.length}`;
+      uiCurrentQuest.textContent = `Atual: Fase ${state.idx+1}`;
+
+      const q = QUESTS[state.idx];
+      uiQuestTag.textContent = q.tag;
+      uiPrompt.textContent = q.prompt;
+      uiHint.textContent = q.hint;
+
+      uiStageDesc.textContent = `${q.title} — tente responder com precisão.`;
+    }
+
+    function endGameIfNeeded(){
+      if (state.hp <= 0){
+        // final
+        const completed = state.done.filter(Boolean).length;
+        setFeedback(
+          "bad",
+          "Sua vida chegou a 0",
+          `Fim de jogo! Você concluiu ${completed} de ${QUESTS.length}. Sugestão: revise os métodos (potências, agrupamento por 4 bits, divisões sucessivas).`
+        );
+        // Disable input/buttons
+        answerInput.disabled = true;
+        modeSelect.disabled = true;
+        document.getElementById("btnCheck").disabled = true;
+        document.getElementById("btnSkip").disabled = true;
+        return true;
+      }
+      return false;
+    }
+
+    function nextQuest(){
+      state.idx = (state.idx + 1) % QUESTS.length;
+      answerInput.value = "";
+      feedback.style.display = "none";
+      updateUI();
+      answerInput.focus();
+    }
+
+    function winCheck(){
+      // If all done
+      if (state.done.every(Boolean)){
+        setFeedback(
+          "good",
+          "🎉 Missão Final concluída!",
+          `Você finalizou todas as fases com pontuação total de ${state.score} e nível ${state.level}. Parabéns!`
+        );
+        answerInput.disabled = true;
+        modeSelect.disabled = true;
+        document.getElementById("btnCheck").disabled = true;
+        document.getElementById("btnSkip").disabled = true;
+      }
+    }
+
+    // -----------------------------
+    // Regras de pontuação/vida
+    // -----------------------------
+    function correctReward(){
+      // recompensa baseada em nível e “streak”
+      const base = 120;
+      const streakBonus = Math.min(60, state.streak * 10);
+      state.score += base + streakBonus;
+
+      // Recupera um pouco
+      state.hp = Math.min(100, state.hp + 10 + Math.min(10, state.streak));
+      // Evolui nível
+      const newLevel = 1 + Math.floor(state.score / 600);
+      state.level = Math.max(state.level, newLevel);
+    }
+
+    function wrongPenalty(){
+      // Penalidade por erro
+      state.streak = 0;
+      state.hp -= 18;
+    }
+
+    function skipPenalty(){
+      state.streak = 0;
+      state.hp -= 10;
+    }
+
+    function isAccepted(userAns){
+      const q = QUESTS[state.idx];
+      const strict = modeSelect.value === "strict";
+      const n = strict ? normalizeAnswer(userAns) : normalizeLoose(userAns);
+
+      if (strict){
+        return q.accepted.map(normalizeAnswer).includes(n);
+      } else {
+        // em flexível, aceitamos match após normalização “loose”
+        const set = q.accepted.map(normalizeLoose);
+        return set.includes(n);
+      }
+    }
+
+    // -----------------------------
+    // Ações
+    // -----------------------------
+    document.getElementById("btnCheck").addEventListener("click", () => {
+      if (answerInput.disabled) return;
+
+      const user = answerInput.value;
+      if (!user || !user.trim()){
+        setFeedback("bad", "Entrada vazia", "Digite sua resposta antes de conferir.");
+        return;
+      }
+
+      const q = QUESTS[state.idx];
+
+      if (isAccepted(user)){
+        state.done[state.idx] = true;
+        state.streak += 1;
+        correctReward();
+        setFeedback("good", "Resposta correta!", q.explanation);
+        updateUI();
+
+        // pequena pausa e segue para próxima fase
+        setTimeout(() => {
+          nextQuest();
+          winCheck();
+          endGameIfNeeded();
+        }, 650);
+      } else {
+        wrongPenalty();
+        setFeedback("bad", "Resposta incorreta", "Tente novamente na próxima fase ou use a Ajuda para revisar o método.");
+        updateUI();
+
+        if (endGameIfNeeded()) return;
+
+        // segue para próxima fase (padrão educativo para manter ritmo)
+        setTimeout(() => nextQuest(), 650);
+      }
+    });
+
+    document.getElementById("btnSkip").addEventListener("click", () => {
+      if (answerInput.disabled) return;
+      const q = QUESTS[state.idx];
+      skipPenalty();
+      setFeedback("bad", "Pulou a missão", `A resposta correta era: ${q.answer}. (Você pode revisar depois.)`);
+      updateUI();
+      if (endGameIfNeeded()) return;
+      setTimeout(() => nextQuest(), 850);
+    });
+
+    document.getElementById("btnHelp").addEventListener("click", () => {
+      const q = QUESTS[state.idx];
+      const strict = modeSelect.value;
+      const example = buildHelpTextForQuest(q);
+      helpBody.innerHTML = example;
+      helpModal.classList.add("show");
+    });
+
+    document.getElementById("btnCloseHelp").addEventListener("click", () => {
+      helpModal.classList.remove("show");
+    });
+
+    helpModal.addEventListener("click", (e) => {
+      if (e.target === helpModal) helpModal.classList.remove("show");
+    });
+
+    // Enter = conferir
+    answerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter"){
+        e.preventDefault();
+        document.getElementById("btnCheck").click();
+      }
+    });
+
+    // -----------------------------
+    // Ajuda contextual (por fase)
+    // -----------------------------
+    function buildHelpTextForQuest(q){
+      const idx = QUESTS.findIndex(x => x.id === q.id);
+      const stageNo = idx + 1;
+
+      // Pequenas receitas por tipo
+      // (Mantém o jogo voltado a “Sistemas de Numeração”.)
+      const tips = [
+        "Conceito: a posição do bit indica uma potência de 2. Some apenas onde houver bit 1.",
+        "Conceito: escreva o número como soma de potências de 2 (ou divida repetidamente por 2 e use os restos).",
+        "Conceito: em hex, cada dígito vale uma potência de 16 (A=10, B=11, …).",
+        "Conceito: 16 é a base do hex. Para 255: 255 = 15·16 + 15, então F e F.",
+        "Conceito: hex ↔ binário: 1 dígito hex = 4 bits. Mapeie: 0→0000 ... F→1111.",
+        "Conceito: octal usa potências de 8. Ex.: 765₈ = 7·8² + 6·8¹ + 5·8⁰.",
+        "Conceito: para converter decimal → octal, divida por 8 e anote os restos (do último ao primeiro).",
+        "Conceito: binário → hex: agrupe em blocos de 4 bits e converta cada bloco para 0..F."
+      ];
+
+      // Explicação “passo a passo” bem curta e focada
+      const header = `<strong>Fase ${stageNo} — receita rápida</strong>`;
+      const body = `<div>${tips[idx] || "Use o método da fase com base nas potências da base (2, 8, 16) ou no agrupamento."}</div>`;
+
+      const method = (() => {
+        // Baseado no padrão da pergunta
+        const p = q.prompt.toLowerCase();
+        if (p.includes("potências de 2") || p.includes("binário")){
+          return `<div><strong>Como fazer:</strong><br>
+                  1) Identifique as potências correspondentes a cada posição do bit<br>
+                  2) Some apenas os termos onde o bit é 1</div>`;
+        }
+        if (p.includes("divisões sucessivas") || p.includes("decimal") && p.includes("octal")){
+          return `<div><strong>Como fazer:</strong><br>
+                  1) Divida o número por 8<br>
+                  2) Registre o resto<br>
+                  3) Repita com o quociente até chegar em 0<br>
+                  4) Leia os restos ao contrário</div>`;
+        }
+        if (p.includes("hexadecimal") && (p.includes("para binário") || p.includes("binário"))){
+          return `<div><strong>Como fazer:</strong><br>
+                  1) Agrupe o binário em blocos de 4 bits (adicione zeros à esquerda se necessário)<br>
+                  2) Converta cada bloco para 0..F (hex)<br>
+                  3) Junte os resultados</div>`;
+        }
+        if (p.includes("hexadecimal") && (p.includes("para decimal") || p.includes("para decimal"))){
+          return `<div><strong>Como fazer:</strong><br>
+                  1) Multiplique cada dígito de hex pela potência de 16 correspondente<br>
+                  2) Some os resultados (ex.: A=10)</div>`;
+        }
+        // genérico
+        return `<div><strong>Como fazer (geral):</strong><br>
+                Escreva o número como soma de potências da base (2/8/16) usando os dígitos correspondentes.</div>`;
+      })();
+
+      const footer = `<div class="smallNote">
+        Você pode conferir sua resposta usando o modo <strong>${modeSelect.value === "strict" ? "Estrita" : "Flexível"}</strong>.
+      </div>`;
+
+      return `${header}${body}${method}${footer}`;
+    }
+
+    // -----------------------------
+    // Inicialização
+    // -----------------------------
+    (function init(){
+      // Desenha trilha inicial
+      updateUI();
+      answerInput.focus();
+      feedback.style.display = "none";
+      // Ajusta lista
+      uiDoneCount.textContent = `0/${QUESTS.length}`;
+    })();
+  </script>
+</body>
+</html>
