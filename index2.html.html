@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Game: Sistemas de Numeração (Sistemas Digitais)</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#121a33;
+      --card2:#0f1730;
+      --text:#e9eeff;
+      --muted:#aab4e6;
+      --accent:#6ae4ff;
+      --good:#38d67a;
+      --bad:#ff4d6d;
+      --warn:#ffd166;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 20% 0%, #182554 0%, var(--bg) 55%, #070b16 100%);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+
+    .wrap{
+      width:min(980px, 100%);
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+    }
+
+    @media (max-width: 860px){
+      .wrap{grid-template-columns: 1fr;}
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid rgba(106,228,255,.18);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding:16px;
+      overflow:hidden;
+      position:relative;
+    }
+
+    header{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-bottom:10px;
+    }
+
+    .title{
+      font-size: clamp(18px, 2.2vw, 24px);
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+
+    .subtitle{
+      color:var(--muted);
+      font-size: 14px;
+      line-height:1.35;
+      margin-top:-4px;
+    }
+
+    .hud{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      margin-top:8px;
+      padding-top:10px;
+      border-top:1px dashed rgba(255,255,255,.14);
+    }
+
+    .hud .stat{
+      background: rgba(18,26,51,.65);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      padding:10px 12px;
+      min-width: 160px;
+    }
+    .stat b{
+      display:block;
+      font-size: 16px;
+    }
+    .stat span{
+      color:var(--muted);
+      font-size: 12px;
+    }
+
+    .bar{
+      height:10px;
+      background: rgba(255,255,255,.10);
+      border-radius: 999px;
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.10);
+      margin-top:8px;
+    }
+    .bar > i{
+      display:block;
+      height:100%;
+      width:50%;
+      background: linear-gradient(90deg, var(--accent), #8b7bff);
+      border-radius:999px;
+      transition: width .35s ease;
+    }
+
+    .quest{
+      padding:14px;
+      background: rgba(15,23,48,.55);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 16px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin-top:10px;
+    }
+
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--muted);
+      font-size: 12px;
+    }
+
+    .pill strong{
+      color:var(--text);
+      font-weight:800;
+    }
+
+    .prompt{
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    .answers{
+      display:grid;
+      gap:10px;
+      grid-template-columns: 1fr;
+      margin-top:4px;
+    }
+
+    .btn{
+      width:100%;
+      text-align:left;
+      padding:12px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(18,26,51,.65);
+      color:var(--text);
+      cursor:pointer;
+      transition: transform .05s ease, background .2s ease, border-color .2s ease;
+      font-weight:650;
+      letter-spacing:.1px;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(106,228,255,.35);
+      background: rgba(18,26,51,.85);
+    }
+    .btn:disabled{
+      opacity:.7;
+      cursor:not-allowed;
+      transform:none;
+    }
+
+    .feedback{
+      border-radius: 14px;
+      padding:12px 12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      display:none;
+    }
+    .feedback.show{display:block;}
+    .feedback.good{
+      border-color: rgba(56,214,122,.45);
+      background: rgba(56,214,122,.10);
+    }
+    .feedback.bad{
+      border-color: rgba(255,77,109,.45);
+      background: rgba(255,77,109,.10);
+    }
+    .feedback .small{
+      color:var(--muted);
+      font-size: 13px;
+      margin-top:6px;
+      line-height:1.35;
+    }
+
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      margin-top:6px;
+      padding-top:12px;
+      border-top:1px dashed rgba(255,255,255,.14);
+    }
+
+    .primary{
+      background: linear-gradient(90deg, rgba(106,228,255,.22), rgba(139,123,255,.22));
+      border-color: rgba(106,228,255,.35);
+    }
+
+    .ghost{
+      background: rgba(18,26,51,.35);
+    }
+
+    .side{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .side .card{
+      padding:14px;
+    }
+
+    .log{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:8px;
+    }
+    .log .entry{
+      padding:10px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.10);
+      color: var(--muted);
+      font-size: 13px;
+      line-height:1.35;
+    }
+    .tag{
+      color:var(--text);
+      font-weight:800;
+      margin-right:8px;
+    }
+
+    .badgeGrid{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .badge{
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding:10px;
+      min-height:76px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      gap:6px;
+    }
+    .badge .bTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .badge .bName{
+      font-weight:900;
+      font-size: 13px;
+      letter-spacing:.2px;
+    }
+    .badge .bDesc{
+      color:var(--muted);
+      font-size: 12px;
+      line-height:1.25;
+    }
+    .badge .state{
+      font-size: 12px;
+      padding:6px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      color:var(--muted);
+    }
+    .badge .state.on{
+      border-color: rgba(56,214,122,.40);
+      color:#bff7d8;
+      background: rgba(56,214,122,.12);
+    }
+
+    .footerNote{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:10px;
+      line-height:1.35;
+    }
+
+    .modalBackdrop{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:50;
+    }
+    .modalBackdrop.show{display:flex;}
+    .modal{
+      width:min(720px, 100%);
+      background: linear-gradient(180deg, rgba(18,26,51,.98), rgba(10,14,28,.98));
+      border:1px solid rgba(106,228,255,.22);
+      border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+      padding:16px;
+    }
+    .modal h2{margin:0 0 8px 0; font-size:18px;}
+    .modal p{margin:6px 0; color:var(--muted); line-height:1.45;}
+    .modal .row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      margin-top:12px;
+      padding-top:12px;
+      border-top:1px dashed rgba(255,255,255,.14);
+    }
+
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.16);
+      padding: 2px 7px;
+      border-radius: 10px;
+      color: var(--text);
+      font-weight:800;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- MAIN -->
+    <section class="card" aria-label="Jogo de sistemas de numeração">
+      <header>
+        <div class="title">🎮 Missão: Sistemas de Numeração</div>
+        <div class="subtitle">
+          Responda as questões por fases. Ganhe pontos, destrave medalhas e avance no mapa.
+          <br/>Dica: concentre-se em <b>base</b>, <b>conversão</b> e <b>representação binária/decimal</b>.
+        </div>
+
+        <div class="hud" role="status" aria-live="polite">
+          <div class="stat">
+            <span>Pontuação</span>
+            <b id="score">0</b>
+          </div>
+          <div class="stat">
+            <span>Fase</span>
+            <b id="phaseLabel">1 / 6</b>
+            <div class="bar" aria-hidden="true"><i id="phaseBar"></i></div>
+          </div>
+          <div class="stat">
+            <span>Vidas</span>
+            <b id="lives">3</b>
+          </div>
+        </div>
+      </header>
+
+      <div class="quest" aria-live="polite">
+        <div class="meta">
+          <div class="pill">Área: <strong id="areaTag">Conversão</strong></div>
+          <div class="pill">Pergunta: <strong id="qIndex">1</strong></div>
+        </div>
+
+        <div class="prompt" id="prompt">
+          Carregando...
+        </div>
+
+        <div class="answers" id="answers"></div>
+
+        <div class="feedback" id="feedbackBox">
+          <div id="feedbackTitle" style="font-weight:900;"></div>
+          <div class="small" id="feedbackExplain"></div>
+        </div>
+
+        <div class="controls">
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn ghost" id="btnRestart" type="button">↻ Reiniciar</button>
+            <button class="btn ghost" id="btnSkip" type="button" title="Pula a pergunta (perde 1 vida)">⏭️ Pular</button>
+          </div>
+          <button class="btn primary" id="btnNext" type="button" disabled>➡️ Próxima fase</button>
+        </div>
+
+        <div class="footerNote">
+          Atalhos: <span class="kbd">1</span> a <span class="kbd">4</span> para escolher, e <span class="kbd">Enter</span> para avançar quando liberado.
+        </div>
+      </div>
+    </section>
+
+    <!-- SIDE -->
+    <aside class="side">
+      <section class="card" aria-label="Medalhas">
+        <div class="title" style="font-size:16px;margin-bottom:4px;">🏅 Medalhas</div>
+        <div class="subtitle" style="margin:0 0 4px 0;">
+          Desbloqueie ao alcançar objetivos durante o jogo.
+        </div>
+        <div class="badgeGrid" id="badges"></div>
+      </section>
+
+      <section class="card" aria-label="Registro">
+        <div class="title" style="font-size:16px;margin-bottom:4px;">📜 Registro da missão</div>
+        <div class="log" id="log"></div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- MODAL FINAL -->
+  <div class="modalBackdrop" id="finalModal" role="dialog" aria-modal="true" aria-labelledby="finalTitle">
+    <div class="modal">
+      <h2 id="finalTitle">Fim da missão!</h2>
+      <p id="finalText"></p>
+
+      <div class="row">
+        <div style="color:var(--muted); font-size:13px; line-height:1.4;">
+          Pontuação final: <b id="finalScore">0</b><br/>
+          Melhor fase: <b id="finalBest">1</b>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+          <button class="btn ghost" id="btnCloseModal" type="button">Voltar</button>
+          <button class="btn primary" id="btnPlayAgain" type="button">▶️ Jogar novamente</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ----------------------------
+    // Dados do jogo (6 fases)
+    // ----------------------------
+    const fases = [
+      {
+        area: "Conversão",
+        prompt: "1) Converta o número binário 10101₂ para decimal.",
+        options: ["18", "21", "20", "19"],
+        answerIndex: 1,
+        explain: "10101₂ = 1·16 + 0·8 + 1·4 + 0·2 + 1·1 = 16 + 4 + 1 = 21."
+      },
+      {
+        area: "Bases e valor posicional",
+        prompt: "2) Qual é o valor decimal do número em base 8: 73₈ ?",
+        options: ["59", "65", "57", "61"],
+        answerIndex: 1,
+        explain: "73₈ = 7·8¹ + 3·8⁰ = 7·8 + 3 = 56 + 3 = 59."
+      },
+      {
+        area: "Conversão",
+        prompt: "3) Converta decimal 26 para binário.",
+        options: ["11010", "11100", "10110", "10011"],
+        answerIndex: 0,
+        explain: "26₁₀ = 16 + 8 + 2 = 1·2⁴ + 1·2³ + 0·2² + 1·2¹ + 0·2⁰ ⇒ 11010₂."
+      },
+      {
+        area: "Representação",
+        prompt: "4) Quantos bits são necessários para representar números de 0 a 31 em binário?",
+        options: ["4", "5", "6", "3"],
+        answerIndex: 1,
+        explain: "Para 0 a 31, precisamos de 32 valores. 2⁵ = 32 ⇒ 5 bits."
+      },
+      {
+        area: "Conversão",
+        prompt: "5) Converta 45₁₀ para hexadecimal (base 16).",
+        options: ["2D", "2E", "3A", "2F"],
+        answerIndex: 0,
+        explain: "45₁₀ ÷ 16: 45 = 2·16 + 13. 13 em hex = D ⇒ 2D₁₆."
+      },
+      {
+        area: "Bases e validação",
+        prompt: "6) O número 19 é válido na base 10 mas não é válido na base 8. Por quê?",
+        options: [
+          "Porque dígitos em base 8 vão de 0 a 7",
+          "Porque 19 é maior que 10 em qualquer base",
+          "Porque a base 8 só aceita números pares",
+          "Porque 19 só existe em binário"
+        ],
+        answerIndex: 0,
+        explain: "Em base 8, os dígitos possíveis são 0–7. Logo, 8 e 9 não existem em base 8."
+      }
+    ];
+
+    // ----------------------------
+    // Estado do jogo
+    // ----------------------------
+    let faseAtual = 0;
+    let score = 0;
+    let lives = 3;
+    let respostasCorretas = 0;
+    let bestPhase = 1; // melhor fase atingida (1-based)
+    let answeredThisPhase = false;
+
+    // ----------------------------
+    // Medalhas
+    // ----------------------------
+    const medalhasDef = [
+      { id: "m1", name: "Conversor", desc: "Acertar 3 fases.", on: () => respostasCorretas >= 3 },
+      { id: "m2", name: "Caçador de Bases", desc: "Acertar 5 fases.", on: () => respostasCorretas >= 5 },
+      { id: "m3", name: "Zerou a Dúvida", desc: "Sem pular (0 skips).", on: () => skips === 0 },
+      { id: "m4", name: "Mãos Limpas", desc: "Terminar sem perder vidas (lives = 3).", on: () => lives === 3 && skips === 0 },
+    ];
+
+    let skips = 0;
+
+    function medalState(m){
+      try { return !!m.on(); } catch { return false; }
+    }
+
+    // ----------------------------
+    // Elementos DOM
+    // ----------------------------
+    const scoreEl = document.getElementById('score');
+    const phaseLabelEl = document.getElementById('phaseLabel');
+    const livesEl = document.getElementById('lives');
+    const phaseBarEl = document.getElementById('phaseBar');
+
+    const areaTagEl = document.getElementById('areaTag');
+    const qIndexEl = document.getElementById('qIndex');
+    const promptEl = document.getElementById('prompt');
+    const answersEl = document.getElementById('answers');
+
+    const feedbackBox = document.getElementById('feedbackBox');
+    const feedbackTitle = document.getElementById('feedbackTitle');
+    const feedbackExplain = document.getElementById('feedbackExplain');
+
+    const btnNext = document.getElementById('btnNext');
+    const btnRestart = document.getElementById('btnRestart');
+    const btnSkip = document.getElementById('btnSkip');
+
+    const logEl = document.getElementById('log');
+    const badgesEl = document.getElementById('badges');
+
+    const finalModal = document.getElementById('finalModal');
+    const finalText = document.getElementById('finalText');
+    const finalScoreEl = document.getElementById('finalScore');
+    const finalBestEl = document.getElementById('finalBest');
+
+    const btnCloseModal = document.getElementById('btnCloseModal');
+    const btnPlayAgain = document.getElementById('btnPlayAgain');
+
+    // ----------------------------
+    // Render Medalhas
+    // ----------------------------
+    function renderBadges(){
+      badgesEl.innerHTML = "";
+      medalhasDef.forEach(m => {
+        const div = document.createElement('div');
+        div.className = "badge";
+        const isOn = medalState(m);
+        div.innerHTML = `
+          <div class="bTop">
+            <div class="bName">${m.name}</div>
+            <div class="state ${isOn ? 'on' : ''}">${isOn ? 'Desbloqueada' : 'Bloqueada'}</div>
+          </div>
+          <div class="bDesc">${m.desc}</div>
+        `;
+        badgesEl.appendChild(div);
+      });
+    }
+
+    // ----------------------------
+    // Registro
+    // ----------------------------
+    function addLog(type, text){
+      const entry = document.createElement('div');
+      entry.className = "entry";
+      const tag = type === 'good' ? '✅' : type === 'bad' ? '❌' : '🧭';
+      entry.innerHTML = `<span class="tag">${tag}</span>${text}`;
+      logEl.prepend(entry);
+    }
+
+    // ----------------------------
+    // Atualiza HUD
+    // ----------------------------
+    function updateHUD(){
+      scoreEl.textContent = score;
+      livesEl.textContent = lives;
+      const total = fases.length;
+      phaseLabelEl.textContent = `${faseAtual + 1} / ${total}`;
+      const pct = ((faseAtual) / (total-1)) * 100;
+      // se total==1 (não é), evita NaN
+      phaseBarEl.style.width = isFinite(pct) ? `${pct}%` : '0%';
+    }
+
+    // ----------------------------
+    // Estado Feedback
+    // ----------------------------
+    function setFeedback(kind, title, explain){
+      feedbackBox.classList.remove('good','bad');
+      feedbackBox.classList.add('show');
+      if(kind === 'good'){
+        feedbackBox.classList.add('good');
+      } else if(kind === 'bad'){
+        feedbackBox.classList.add('bad');
+      }
+      feedbackTitle.textContent = title;
+      feedbackExplain.textContent = explain;
+    }
+
+    function clearFeedback(){
+      feedbackBox.classList.remove('show','good','bad');
+      feedbackTitle.textContent = '';
+      feedbackExplain.textContent = '';
+    }
+
+    // ----------------------------
+    // Carrega fase
+    // ----------------------------
+    function loadPhase(){
+      answeredThisPhase = false;
+      clearFeedback();
+      btnNext.disabled = true;
+
+      const f = fases[faseAtual];
+      areaTagEl.textContent = f.area;
+      qIndexEl.textContent = (faseAtual + 1).toString();
+      promptEl.textContent = f.prompt;
+
+      answersEl.innerHTML = "";
+      f.options.forEach((opt, idx) => {
+        const b = document.createElement('button');
+        b.className = "btn";
+        b.type = "button";
+        b.textContent = `${idx+1}) ${opt}`;
+        b.addEventListener('click', () => chooseAnswer(idx));
+        answersEl.appendChild(b);
+      });
+
+      updateHUD();
+      renderBadges();
+    }
+
+    function endGame(){
+      finalModal.classList.add('show');
+      finalScoreEl.textContent = score;
+      finalBestEl.textContent = bestPhase;
+      const status = (lives > 0 && faseAtual === fases.length - 1) ? "Você concluiu todas as fases!" : "Missão encerrada. Tente novamente para melhorar seu desempenho.";
+      finalText.textContent = status + " Continue treinando conversão de bases e valor posicional!";
+    }
+
+    // ----------------------------
+    // Lógica de pontuação
+    // ----------------------------
+    function pointsForCorrect(){
+      // Recompensa um pouco maior em fases iniciais e se não houver muitas vidas perdidas
+      const base = 120;
+      const faseBonus = (fases.length - faseAtual) * 8; // fases menores dão bônus
+      const lifeBonus = (lives) * 6; // mais vidas = mais bônus
+      return Math.max(60, Math.round(base + faseBonus + lifeBonus));
+    }
+
+    function pointsForWrong(){
+      return 20; // penalidade (não negativa)
+    }
+
+    // ----------------------------
+    // Escolha de resposta
+    // ----------------------------
+    function lockAnswers(){
+      [...answersEl.querySelectorAll('button')].forEach(b => b.disabled = true);
+    }
+
+    function chooseAnswer(idx){
+      if(answeredThisPhase) return;
+      answeredThisPhase = true;
+
+      const f = fases[faseAtual];
+      const correct = idx === f.answerIndex;
+
+      const buttons = [...answersEl.querySelectorAll('button')];
+      lockAnswers();
+
+      if(correct){
+        respostasCorretas++;
+        const pts = pointsForCorrect();
+        score += pts;
+        setFeedback('good', `Correto! +${pts} pts`, f.explain);
+        addLog('good', `Fase ${faseAtual+1}: resposta certa. (${pts} pts)`);
+      } else {
+        lives = Math.max(0, lives - 1);
+        score = Math.max(0, score - pointsForWrong());
+        setFeedback('bad', `Incorreto. -1 vida`, f.explain);
+        addLog('bad', `Fase ${faseAtual+1}: resposta incorreta. (explicação exibida)`);
+      }
+
+      // Atualiza HUD e medalhas
+      updateHUD();
+      bestPhase = Math.max(bestPhase, faseAtual + 1);
+      renderBadges();
+
+      // Libera próxima fase se ainda há vida
+      if(lives <= 0){
+        addLog('bad', "Sem vidas restantes. Reinicie para tentar novamente.");
+        endGame();
+        return;
+      }
+
+      btnNext.disabled = false;
+    }
+
+    // ----------------------------
+    // Próxima fase
+    // ----------------------------
+    btnNext.addEventListener('click', () => {
+      if(btnNext.disabled) return;
+      if(faseAtual < fases.length - 1){
+        faseAtual++;
+        loadPhase();
+      } else {
+        // terminou
+        addLog('good', "Parabéns! Você concluiu a missão.");
+        endGame();
+      }
+    });
+
+    // ----------------------------
+    // Pular (skip)
+    // ----------------------------
+    btnSkip.addEventListener('click', () => {
+      if(lives <= 0) return;
+
+      // se ainda não respondeu, aplica vida e conta como skip
+      if(!answeredThisPhase){
+        skips++;
+        lives = Math.max(0, lives - 1);
+        addLog('bad', `Fase ${faseAtual+1}: pulada. -1 vida.`);
+        updateHUD();
+        renderBadges();
+
+        clearFeedback();
+        btnNext.disabled = false; // permite ir para próxima fase
+        answeredThisPhase = true;
+        feedbackBox.classList.add('show','bad');
+        feedbackTitle.textContent = "Fase pulada";
+        feedbackExplain.textContent = "Você pode voltar depois. Em seguida, avance para a próxima fase.";
+        lockAnswers();
+
+        if(lives <= 0){
+          endGame();
+        }
+      }
+    });
+
+    // ----------------------------
+    // Restart
+    // ----------------------------
+    btnRestart.addEventListener('click', () => {
+      faseAtual = 0;
+      score = 0;
+      lives = 3;
+      respostasCorretas = 0;
+      bestPhase = 1;
+      skips = 0;
+
+      renderBadges();
+      loadPhase();
+      logEl.innerHTML = "";
+      addLog('good', "Bem-vindo! Comece pela Fase 1.");
+      finalModal.classList.remove('show');
+    });
+
+    // ----------------------------
+    // Modal final
+    // ----------------------------
+    btnCloseModal.addEventListener('click', () => {
+      finalModal.classList.remove('show');
+    });
+
+    btnPlayAgain.addEventListener('click', () => {
+      btnRestart.click();
+    });
+
+    // ----------------------------
+    // Atalhos do teclado
+    // ----------------------------
+    document.addEventListener('keydown', (e) => {
+      const key = e.key;
+      const isNumber = ['1','2','3','4'].includes(key);
+      const enter = key === 'Enter';
+
+      if(finalModal.classList.contains('show')) return;
+
+      if(isNumber && !answeredThisPhase){
+        const idx = parseInt(key, 10) - 1;
+        const btns = [...answersEl.querySelectorAll('button')];
+        if(btns[idx]) btns[idx].click();
+      } else if(enter && !btnNext.disabled && answeredThisPhase){
+        btnNext.click();
+      }
+    });
+
+    // ----------------------------
+    // Inicialização
+    // ----------------------------
+    (function init(){
+      // Inicial logs
+      addLog('good', "Bem-vindo! Comece pela Fase 1.");
+      renderBadges();
+      loadPhase();
+    })();
+  </script>
+</body>
+</html>
